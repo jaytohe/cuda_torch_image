@@ -17,6 +17,7 @@ COPY ./nvidia_env_vars /etc/nvidia_env_vars
 RUN cp /etc/bash.bashrc /etc/bash.bashrc.old
 RUN cat <(echo "source /etc/nvidia_env_vars") /etc/bash.bashrc.old > /etc/bash.bashrc #Hack to allow Pytorch and CUDA to work over SSH.
 
+#Configure Jupyter default password and directory
 RUN jupyter notebook --generate-config
 RUN python <(echo 'from notebook.auth import passwd; print("c.NotebookApp.password=\"%s\"" % passwd("1234"))') > $HOME/.jupyter/jupyter_notebook_config.py
 RUN echo 'c.NotebookApp.open_browser = False' >> $HOME/.jupyter/jupyter_notebook_config.py
@@ -29,6 +30,9 @@ RUN git clone https://github.com/faebstn96/torch-radon.git && cd torch-radon && 
 #Prepare Custom Subhadip's Conda Env
 RUN git clone https://github.com/Subhadip-1/data_driven_convex_regularization.git /root/subhadip_ct_conda
 RUN cd /root/subhadip_ct_conda && conda env create -f environment.yml
+
+#Install extra pip libraries
+RUN python -m pip install einops imageio scikit-image ipywidgets && jupyter nbextension enable --py widgetsnbextension
 
 COPY init_sshd_jupyter /root/init_sshd_jupyter
 RUN chmod +x /root/init_sshd_jupyter
